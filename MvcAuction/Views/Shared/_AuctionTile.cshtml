@@ -1,0 +1,12 @@
+﻿@model MvcAuction.Models.Auction
+
+<div class="auction-title">
+    <h4 class="title">
+        @Html.ActionLink(@Model.Title, "Auction", new { id = Model.Id})
+    </h4>
+    <p class="end-date">Ends at @Model.EndTime.ToString("g")</p>
+    <p class="price">
+        Price:
+        @Model.CurrentPrice.GetValueOrDefault(Model.StartPrice).ToString("C")
+    </p>
+</div>

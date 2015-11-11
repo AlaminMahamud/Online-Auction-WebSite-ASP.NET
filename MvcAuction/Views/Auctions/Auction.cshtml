@@ -1,0 +1,83 @@
+﻿@model MvcAuction.Models.Auction
+@{
+
+    /// var auction = ViewData["Auction"];
+    /// var auction = ViewBag.Auction;
+    var auction = Model;
+}
+
+<div id="div1">
+    <h3>@auction.Title</h3>
+    <p>
+        @auction.Description
+    </p>
+    <p>Started Time: @auction.StartedTime.ToString("g")</p>
+    <p>End Time: @auction.EndTime.ToString("g")</p>
+    <p>Started Price: @auction.StartPrice.ToString("C")</p>
+    <p class="current-price">Current Price: 
+       @if (auction.CurrentPrice != null)
+       {
+         <span>@auction.CurrentPrice.Value.ToString("C")</span> 
+         <span>[@auction.BidCount bids]</span>
+       }
+       else
+       {
+           @: [No Bids]
+       }
+    </p>
+    <p>
+        @using (Html.BeginForm("Bid", "Auctions"))
+        {
+            var lowsetBidAmount = auction.CurrentPrice.GetValueOrDefault(auction.StartPrice) + 1;
+            <span>
+                Bid: $@Html.TextBox("amount", lowsetBidAmount, new { id = "amount-id"})
+                @Html.ValidationMessage("amount")
+            </span>
+            @Html.Hidden("auctionId", auction.Id)
+            <input class="post-bid" type="submit" value="Bid"/>
+        }
+    </p>
+    
+    @if(auction.ImageUrl == null)
+    {
+        <img src="@auction.ImageUrl"
+             alt="@auction.Title"
+        />
+    }
+    
+</div>
+
+<script type="application/html-template" id="current-price-template">
+    <p class="current-price">
+        <span>Current Price: {{CurrentPrice}}</span>
+        <span>[{{BidCount}} bids]</span>
+    </p>
+</script>
+
+@section Scripts
+{
+    <script type="text/javascript">
+        $(function () {
+            $('.post-bid').on('click',function(){
+                var form = $(this).parent("form");
+                $.ajax({
+                    type: "POST",
+                    url: form.attr("action"),
+                    data: form.serialize()
+                })
+               .success(function (data) {
+                   var template = $("#current-price-template").clone().html();
+                   var html =  template
+                              .replace('{{CurrentPrice}}', data.CurrentPrice)
+                              .replace('{{BidCount}}', data.BidCount);
+                   $('.current-price').replaceWith(html);
+                   $('#amount-id').val((parseFloat((data.CurrentPrice).substr(1)) + 1.00).toFixed(2));
+               })
+               .error(function () {
+                   alert("Your Bid has been rejected");
+               });
+                return false;
+            });
+        });
+    </script>   
+}
